@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.0 - 2026-07-26
+
+### Added
+
+- `ReportExportContext::rowCount(int)`：handler 可在產檔後寫回**實際**匯出筆數。排入佇列時給的 `count` 只是估計值（例如勾選數量），實際筆數往往要等產檔才知道。只寫 `count` 欄，status 與 progress 仍由 job 掌管。
+
 ## v0.1.1 - 2026-07-26
 
 ### Fixed

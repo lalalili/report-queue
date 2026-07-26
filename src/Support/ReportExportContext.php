@@ -64,4 +64,17 @@ final class ReportExportContext
     {
         ($this->onProgress)($percent);
     }
+
+    /**
+     * Record how many rows the export actually produced.
+     *
+     * The count given when the export was queued is only an estimate — a
+     * selection size, say — so handlers that know the real figure should report
+     * it here. Writes only the count column, leaving the job in charge of
+     * status and progress.
+     */
+    public function rowCount(int $count): void
+    {
+        $this->report->update(['count' => max(0, $count)]);
+    }
 }

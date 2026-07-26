@@ -87,6 +87,20 @@ public function boot(): void
 
 `label` 參數是可選的顯示解耦；不給就沿用 `type` 原值。
 
+### Handler 可用的 context API
+
+```php
+$context->report;              // Report model
+$context->params;              // params 陣列
+$context->ids;                 // params['selected_ids']
+$context->param('key');        // 單一參數
+$context->disk;                // 目標 disk
+$context->filename;            // 檔名
+$context->path;                // 相對 disk 的完整路徑
+$context->progress(50);        // 回報進度（寫入由 job 節流）
+$context->rowCount(1234);      // 回報實際匯出筆數，覆蓋排程時的估計值
+```
+
 ### 業務副作用的責任邊界
 
 匯出成功後要一併推進領域狀態（例如產出 ERP 檔後把訂單改為已出貨），請寫在**宿主自己的 handler `handle()` 內**，這樣失敗時報表仍會是 FAILED。
