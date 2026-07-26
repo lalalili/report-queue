@@ -16,6 +16,9 @@ use Lalalili\ReportQueue\Models\Report;
  */
 final class ReportNotifier
 {
+    /** Params key recording that the completion notice already went out. */
+    public const NOTIFIED_AT_PARAM = 'completion_notified_at';
+
     public function queued(Report $report): void
     {
         if (config('report-queue.notifications.on_queued', true) !== true) {
@@ -50,7 +53,13 @@ final class ReportNotifier
             return;
         }
 
-        $this->sendToOwner($report, function (Model $user) use ($report): void {
+        // Retries re-enter the job, so the completion notice is stamped on the
+        // report to keep the user from being told twice about one export.
+        if (filled($report->param(self::NOTIFIED_AT_PARAM))) {
+            return;
+        }
+
+        $sent = $this->sendToOwner($report, function (Model $user) use ($report): void {
             $notification = Notification::make()
                 ->success()
                 ->title((string) trans('report-queue::messages.finished.title', ['type' => $report->type]))
@@ -71,6 +80,14 @@ final class ReportNotifier
 
             $notification->sendToDatabase($user);
         });
+
+        if ($sent) {
+            $report->update([
+                'params' => ($report->params ?? []) + [
+                    self::NOTIFIED_AT_PARAM => now()->toIso8601String(),
+                ],
+            ]);
+        }
     }
 
     public function failed(Report $report): void
@@ -103,8 +120,9 @@ final class ReportNotifier
 
     /**
      * @param  callable(Model): void  $callback
+     * @return bool Whether the notification actually went to somebody.
      */
-    private function sendToOwner(Report $report, callable $callback): void
+    private function sendToOwner(Report $report, callable $callback): bool
     {
         $ownerId = $report->getAttribute(HostUser::foreignKey());
 
@@ -112,9 +130,11 @@ final class ReportNotifier
 
         // Database notifications require the host user model to be notifiable.
         if ($user === null || ! in_array(Notifiable::class, class_uses_recursive($user), true)) {
-            return;
+            return false;
         }
 
         $callback($user);
+
+        return true;
     }
 }

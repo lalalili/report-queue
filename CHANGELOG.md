@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.3.0 - 2026-07-26
+
+### Added
+
+- 重試安全：報表已 FINISHED 且檔案仍在時，job 不再重新產檔（`queue.skip_if_complete`，預設開啟）。匯出成本高，檔案本身就是最貴的部分。
+- 完成通知跨重試只發一次，以 `params.completion_notified_at` 記錄；若前次已完成但通知未送出，重試仍會補送。
+
+### Changed
+
+- 重試會保留原本的 `started_at`，並清掉上一次的 `error`。
+- `failed()` 遇到已 FINISHED 的報表不再覆寫為 FAILED（避免延遲觸發的失敗回呼推翻成功結果）。
+
 ## v0.2.1 - 2026-07-26
 
 ### Fixed

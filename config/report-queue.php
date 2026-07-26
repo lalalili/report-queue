@@ -224,6 +224,10 @@ return [
         'tries' => 3,
         'timeout' => 1800,
         'backoff' => [60, 300],
+
+        // A retry whose file already exists skips regeneration. Turn this off
+        // only for exports whose contents must reflect the retry's moment.
+        'skip_if_complete' => true,
     ],
 
     /*

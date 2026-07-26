@@ -11,6 +11,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Lalalili\ReportQueue\Enums\ReportStatusEnum;
 use Lalalili\ReportQueue\Events\ReportExportCompleted;
 use Lalalili\ReportQueue\Events\ReportExportFailed;
@@ -68,11 +69,21 @@ class RunReportExportJob implements ShouldQueue
     {
         $report = ReportModel::findOrFail($this->reportId);
 
+        // A retry after the file was already produced must not regenerate it —
+        // these exports are expensive and the file is the expensive part. Only
+        // the completion notification is still owed, if it never went out.
+        if ($this->alreadyComplete($report)) {
+            app(ReportNotifier::class)->finished($report);
+
+            return;
+        }
+
         $report->update([
             'status' => ReportStatusEnum::RUNNING,
-            'started_at' => now(),
+            'started_at' => $report->started_at ?? now(),
             'heartbeat_at' => now(),
             'progress' => 10,
+            'error' => null,
         ]);
 
         event(new ReportExportStarted($report));
@@ -105,9 +116,34 @@ class RunReportExportJob implements ShouldQueue
         app(ReportNotifier::class)->finished($report);
     }
 
+    /**
+     * True when a previous attempt already finished and its file survives.
+     */
+    private function alreadyComplete(Report $report): bool
+    {
+        if (! Config::bool('queue.skip_if_complete', true)) {
+            return false;
+        }
+
+        if ($report->status !== ReportStatusEnum::FINISHED || ! filled($report->file_path)) {
+            return false;
+        }
+
+        $disk = filled($report->file_disk)
+            ? (string) $report->file_disk
+            : app(ReportStorage::class)->disk();
+
+        return Storage::disk($disk)->exists((string) $report->file_path);
+    }
+
     public function failed(Throwable $exception): void
     {
         $report = ReportModel::find($this->reportId);
+
+        // A late failure callback must not undo a report that did finish.
+        if ($report !== null && $report->status === ReportStatusEnum::FINISHED) {
+            return;
+        }
 
         ReportModel::query()->whereKey($this->reportId)->update([
             'status' => ReportStatusEnum::FAILED,
