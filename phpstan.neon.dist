@@ -1,0 +1,15 @@
+includes:
+    - %currentWorkingDirectory%/vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: max
+
+    # Pest's closure-bound `$this` is not analysable without extra tooling, so
+    # tests are covered by the suite rather than by static analysis.
+    paths:
+        - src
+        - config
+        - database
+        - routes
+
+    checkMissingTypehints: true
