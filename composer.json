@@ -2,7 +2,7 @@
     "name": "lalalili/report-queue",
     "description": "Asynchronous export job queue with a 24-hour download centre for Laravel + Filament hosts.",
     "type": "library",
-    "license": "proprietary",
+    "license": "MIT",
     "require": {
         "php": "^8.4",
         "filament/actions": "^4.0 || ^5.0",
@@ -59,7 +59,5 @@
             "pestphp/pest-plugin": true
         },
         "sort-packages": true
-    },
-    "minimum-stability": "stable",
-    "prefer-stable": true
+    }
 }
