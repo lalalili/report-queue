@@ -24,6 +24,8 @@ Migration 是 idempotent 的：宿主若已有 `reports` 表，只會補上缺�
 
 ## 啟用 Plugin
 
+**宿主若使用 `->discoverResources()` 就不需要 Plugin**——resource 會被自動發現，再註冊一次會重複。Plugin 只給明確列舉 resource 的 panel 用。
+
 ```php
 // app/Providers/Filament/AdminPanelProvider.php
 use Lalalili\ReportQueue\ReportQueuePlugin;
@@ -132,6 +134,46 @@ Schedule::command('report-queue:prune')->hourly()->runInBackground()->onOneServe
 三階段：逾期檔案 → EXPIRED 並刪檔；卡住的 PENDING/RUNNING → FAILED；終止狀態的舊資料列整列刪除（連帶刪掉還掛著的檔案）。
 
 `--dry-run` 只回報候選數量，不做任何變更。
+
+## 遷移既有宿主
+
+以下是四個宿主（cptw、lxm-survey、eip、aitehub）實際遷移後整理出來的路線，照順序做。
+
+### 1. 刪掉舊類別後必須重建 autoload 與 Filament 快取
+
+```bash
+composer dump-autoload -o
+php artisan filament:cache-components
+php artisan optimize:clear
+```
+
+**這一步不能省。** Composer 的 classmap 會繼續指向已刪除的檔案，Filament 註冊路由時載入它就會讓整個 panel 回 500。**測試抓不到**（測試不走那條載入路徑），只有真實 HTTP 請求會踩到。
+
+### 2. 決定要不要 subclass Resource
+
+淺縫（`hidden_columns` / `extra_columns` / `filters_enabled`）只夠應付「加一兩個欄位」。一旦需要衍生欄位、條件式徽章、或自訂 action，就走 `filament.resource_class` 指向 subclass 並整個覆寫 `table()`；subclass 仍可沿用 `static::scopeToViewer()`、`static::pollInterval()`。四個宿主裡有三個走了 subclass——這是預期的，不是失敗。
+
+### 3. 保留宿主自己的排程 action（若它帶領域規則）
+
+`QueueReportExport` 是便利工具，不是必經路徑。宿主的排程 action 若帶授權、驗證、或「重複時回傳既有報表」等契約，就讓它自己建立資料列並 dispatch **套件的** job；registry 仍會依 `type` 分派 handler。eip 就是這樣：兩個 job 收斂為零，排程規則完整保留。
+
+### 4. 路由：多數宿主用 config，脈絡敏感的宿主自己註冊
+
+一般情況設好 `routes.prefix` / `download_name` / `middleware` 即可。若該路由原本所在的 group、domain 或註冊順序會影響匹配，改用 `routes.enabled => false`，宿主自己註冊但指向套件的 `ReportDownloadController`——`download_name` 仍要留著，model 用它產生下載連結。
+
+### 5. 用字不同就發佈譯檔
+
+```bash
+php artisan vendor:publish --tag=report-queue-translations
+```
+
+狀態標籤與通知文案都在 `report-queue::status` / `report-queue::messages`，宿主可保留自己原本的用字（例如「完成」而非「已完成」、頁面叫「匯出下載」而非「我的報表」）。
+
+### 6. 已知陷阱
+
+- **不要為了顯示已軟刪除的建立者而覆寫 model 的 `user()`**：`BelongsTo` 的 `TRelatedModel` 不具共變性，窄化會被 PHPStan 擋、放寬則 `withTrashed()` 不可見。這是檢視層的關注點，在 Resource 查詢做 `->with(['user' => fn (Relation $u) => $u->withoutGlobalScope(SoftDeletingScope::class)])`。
+- **宿主測試若曾覆寫自己的 report disk config 來配合 `Storage::fake()`**，遷移後要一併覆寫 `report-queue.storage.disk`，否則下載會指向真實 disk。
+- `reports.type` 存的字串是**資料契約**，registry 的 key 必須沿用既有值，不可改名。
 
 ## 測試
 
