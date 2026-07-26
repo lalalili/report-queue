@@ -72,7 +72,14 @@ class QueueReportExport
                 return null;
             }
 
-            $filename = app(ReportStorage::class)->filename($filenamePrefix, $extension);
+            // A caller that already knows the exact filename it needs — because
+            // the name encodes domain identifiers, say — keeps it; otherwise one
+            // is generated from the prefix.
+            $supplied = $extraParams['filename'] ?? null;
+
+            $filename = is_string($supplied) && $supplied !== ''
+                ? $supplied
+                : app(ReportStorage::class)->filename($filenamePrefix, $extension);
 
             $params = array_merge($extraParams, ['filename' => $filename]);
 
