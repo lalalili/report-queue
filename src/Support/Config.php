@@ -34,6 +34,18 @@ final class Config
         return $value ?? $default;
     }
 
+    /**
+     * Like string(), but an explicit empty string is kept as a value rather than
+     * treated as "unset". Needed where empty is meaningful — a route prefix of
+     * '' mounts the route at the root, which is what most hosts already have.
+     */
+    public static function stringOrEmpty(string $key, string $default): string
+    {
+        $value = config('report-queue.'.$key);
+
+        return is_string($value) ? $value : $default;
+    }
+
     public static function nullableString(string $key): ?string
     {
         $value = config('report-queue.'.$key);

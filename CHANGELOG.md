@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.1 - 2026-07-26
+
+### Fixed
+
+- `routes.prefix` 設為空字串時不再被當作「未設定」而 fallback 到 `admin`。多數宿主的下載路由掛在 root（`reports/{report}/download`）而非 `admin/` 之下，此修正是遷移這些宿主的前提。
+
 ## v0.1.0 - 2026-07-26
 
 首個版本，從 `cptw`、`aitehub`、`eip`、`lxm-survey` 四個宿主的「我的報表」實作抽取而成。

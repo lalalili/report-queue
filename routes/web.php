@@ -13,7 +13,7 @@ if (! Config::bool('routes.enabled', true)) {
 $middleware = Config::stringList('routes.middleware');
 $name = Config::string('routes.download_name', 'report-queue.download');
 
-Route::prefix(Config::string('routes.prefix', 'admin'))
+Route::prefix(Config::stringOrEmpty('routes.prefix', 'admin'))
     ->middleware($middleware === [] ? ['web', 'auth'] : $middleware)
     ->group(function () use ($name): void {
         Route::get('reports/{report}/download', ReportDownloadController::class)->name($name);
