@@ -47,6 +47,9 @@
             "providers": [
                 "Lalalili\\ReportQueue\\ReportQueueServiceProvider"
             ]
+        },
+        "branch-alias": {
+            "dev-main": "1.0.x-dev"
         }
     },
     "scripts": {
