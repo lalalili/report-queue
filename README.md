@@ -137,7 +137,7 @@ Schedule::command('report-queue:prune')->hourly()->runInBackground()->onOneServe
 
 ## 遷移既有宿主
 
-以下是四個宿主（cptw、lxm-survey、eip、aitehub）實際遷移後整理出來的路線，照順序做。
+以下是多個宿主專案實際遷移後整理出來的路線，照順序做。
 
 ### 1. 刪掉舊類別後必須重建 autoload 與 Filament 快取
 
