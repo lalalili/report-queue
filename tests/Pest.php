@@ -9,3 +9,5 @@ uses(TestCase::class)->in('Feature', 'Unit');
 
 // Only these need a booted panel; the rest stay on the lighter base class.
 uses(FilamentTestCase::class)->in('Filament');
+
+pest()->tia()->locally();

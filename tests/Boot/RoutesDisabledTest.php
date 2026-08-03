@@ -2,17 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Lalalili\ReportQueue\Tests\Boot;
-
 use Illuminate\Support\Facades\Route;
 use Lalalili\ReportQueue\Tests\TestCase;
 
 /**
- * Class-based because the seam is read while the package boots, so it cannot be
- * flipped from inside a test body. Kept out of the Pest `uses()` directories on
- * purpose.
+ * The configuration is read while the package boots, so this scenario uses a
+ * dedicated Pest base class instead of changing it inside a test body.
  */
-class RoutesDisabledTest extends TestCase
+class RoutesDisabledTestCase extends TestCase
 {
     protected function defineEnvironment($app): void
     {
@@ -20,14 +17,14 @@ class RoutesDisabledTest extends TestCase
 
         $app['config']->set('report-queue.routes.enabled', false);
     }
-
-    public function test_it_registers_no_download_route_when_disabled(): void
-    {
-        $this->assertFalse(Route::has('report-queue.download'));
-    }
-
-    public function test_a_report_reports_no_download_url_when_routes_are_disabled(): void
-    {
-        $this->assertNull($this->downloadableReport()->downloadUrl());
-    }
 }
+
+uses(RoutesDisabledTestCase::class);
+
+it('registers no download route when disabled', function (): void {
+    $this->assertFalse(Route::has('report-queue.download'));
+});
+
+it('reports no download URL when routes are disabled', function (): void {
+    $this->assertNull($this->downloadableReport()->downloadUrl());
+});

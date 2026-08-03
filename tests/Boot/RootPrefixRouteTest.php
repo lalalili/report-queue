@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-namespace Lalalili\ReportQueue\Tests\Boot;
-
 use Illuminate\Support\Facades\Route;
 use Lalalili\ReportQueue\Tests\TestCase;
 
@@ -12,7 +10,7 @@ use Lalalili\ReportQueue\Tests\TestCase;
  * `admin/`, so an explicitly empty prefix has to survive as a value instead of
  * falling back to the package default.
  */
-class RootPrefixRouteTest extends TestCase
+class RootPrefixRouteTestCase extends TestCase
 {
     protected function defineEnvironment($app): void
     {
@@ -21,24 +19,24 @@ class RootPrefixRouteTest extends TestCase
         $app['config']->set('report-queue.routes.prefix', '');
         $app['config']->set('report-queue.routes.download_name', 'reports.download');
     }
-
-    public function test_it_mounts_the_download_route_at_the_root(): void
-    {
-        $this->assertTrue(Route::has('reports.download'));
-
-        $this->assertSame(
-            'reports/{report}/download',
-            Route::getRoutes()->getByName('reports.download')?->uri(),
-        );
-    }
-
-    public function test_a_report_links_through_the_root_mounted_route(): void
-    {
-        $report = $this->downloadableReport();
-
-        $this->assertStringContainsString(
-            '/reports/'.$report->getKey().'/download',
-            (string) $report->downloadUrl(),
-        );
-    }
 }
+
+uses(RootPrefixRouteTestCase::class);
+
+it('mounts the download route at the root', function (): void {
+    $this->assertTrue(Route::has('reports.download'));
+
+    $this->assertSame(
+        'reports/{report}/download',
+        Route::getRoutes()->getByName('reports.download')?->uri(),
+    );
+});
+
+it('links a report through the root mounted route', function (): void {
+    $report = $this->downloadableReport();
+
+    $this->assertStringContainsString(
+        '/reports/'.$report->getKey().'/download',
+        (string) $report->downloadUrl(),
+    );
+});
