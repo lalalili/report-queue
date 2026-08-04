@@ -21,7 +21,9 @@ final class ExcelExportHandler implements ReportExportHandler
     /**
      * @param  Closure(ReportExportContext): object  $exportFactory
      */
-    public function __construct(private readonly Closure $exportFactory) {}
+    public function __construct(private readonly Closure $exportFactory)
+    {
+    }
 
     /**
      * @return class-string

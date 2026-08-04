@@ -12,5 +12,6 @@ final class ReportExportFailed
     public function __construct(
         public readonly Report $report,
         public readonly Throwable $exception,
-    ) {}
+    ) {
+    }
 }

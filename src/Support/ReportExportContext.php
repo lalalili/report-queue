@@ -25,7 +25,8 @@ final class ReportExportContext
         public readonly string $filename,
         public readonly string $path,
         private readonly Closure $onProgress,
-    ) {}
+    ) {
+    }
 
     /**
      * @param  Closure(int): void  $onProgress

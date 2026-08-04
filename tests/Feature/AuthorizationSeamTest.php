@@ -41,7 +41,7 @@ it('defers to shield-style permission names', function (): void {
     Gate::define('ViewAny:Report', fn (): bool => true);
     Gate::define('Delete:Report', fn (): bool => false);
 
-    $policy = new ReportPolicy;
+    $policy = new ReportPolicy();
 
     expect($policy->viewAny($user))->toBeTrue()
         ->and($policy->delete($user))->toBeFalse();

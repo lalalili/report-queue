@@ -16,7 +16,9 @@ final class ClosureExportHandler implements ReportExportHandler
     /**
      * @param  Closure(ReportExportContext): (string|null)  $callback
      */
-    public function __construct(private readonly Closure $callback) {}
+    public function __construct(private readonly Closure $callback)
+    {
+    }
 
     public function handle(ReportExportContext $context): string
     {

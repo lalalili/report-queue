@@ -15,5 +15,7 @@ use Lalalili\ReportQueue\Models\Report;
  */
 final class ReportExportCompleted
 {
-    public function __construct(public readonly Report $report) {}
+    public function __construct(public readonly Report $report)
+    {
+    }
 }

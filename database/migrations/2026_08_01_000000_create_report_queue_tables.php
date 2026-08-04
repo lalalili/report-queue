@@ -13,8 +13,7 @@ use Lalalili\ReportQueue\Support\Config;
  * were added later. Recreating it would be destructive, so an existing table is
  * only topped up with the columns this package needs.
  */
-return new class extends Migration
-{
+return new class () extends Migration {
     public function up(): void
     {
         $table = $this->table();

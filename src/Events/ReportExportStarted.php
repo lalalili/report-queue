@@ -8,5 +8,7 @@ use Lalalili\ReportQueue\Models\Report;
 
 final class ReportExportStarted
 {
-    public function __construct(public readonly Report $report) {}
+    public function __construct(public readonly Report $report)
+    {
+    }
 }
